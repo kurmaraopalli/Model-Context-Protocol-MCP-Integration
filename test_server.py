@@ -5,7 +5,13 @@ from server import (
     build_ux_bot_response,
     calculate_student_eligibility,
     get_daily_loan_metrics,
+    get_mcp_prompt_definitions,
+    get_mcp_resource_definitions,
+    get_mcp_tool_definitions,
     get_ux_bot_instructions,
+    invoke_mcp_tool,
+    read_mcp_resource,
+    render_mcp_prompt,
 )
 
 
@@ -40,6 +46,33 @@ class ServerTests(unittest.TestCase):
         response = build_chat_response("What does this bot do?")
         self.assertIn("FAQ suggestions", response["reply"])
         self.assertIn("How much can I borrow for a student loan?", response["suggestions"])
+
+    def test_mcp_tool_definitions_expose_student_loan_tools(self):
+        tools = get_mcp_tool_definitions()
+        tool_names = {tool["name"] for tool in tools}
+        self.assertIn("calculate_student_eligibility", tool_names)
+        self.assertIn("get_daily_loan_metrics", tool_names)
+        self.assertIn("get_ux_bot_instructions", tool_names)
+
+    def test_invoke_mcp_tool_returns_tool_result(self):
+        result = invoke_mcp_tool("calculate_student_eligibility", {"course_type": "engineering", "income": 35000, "country": "US"})
+        self.assertEqual(result["max_amount"], 120000)
+        self.assertEqual(result["baseline_interest_rate"], 6.8)
+
+    def test_mcp_resource_definitions_expose_examples(self):
+        resources = get_mcp_resource_definitions()
+        resource_names = {resource["name"] for resource in resources}
+        self.assertIn("student-loan-faq", resource_names)
+        self.assertIn("document-checklist", resource_names)
+        content = read_mcp_resource("student-loan-faq")
+        self.assertIn("FAQ", content["text"])
+
+    def test_mcp_prompt_definitions_expose_examples(self):
+        prompts = get_mcp_prompt_definitions()
+        prompt_names = {prompt["name"] for prompt in prompts}
+        self.assertIn("explain_eligibility", prompt_names)
+        rendered = render_mcp_prompt("explain_eligibility", {"income": 35000})
+        self.assertIn("35000", rendered["prompt"])
 
 
 if __name__ == "__main__":

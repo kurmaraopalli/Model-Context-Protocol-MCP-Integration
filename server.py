@@ -133,6 +133,118 @@ def build_ux_bot_response(context: str) -> str:
     return "UX Bot guidance: " + response["reply"]
 
 
+def get_mcp_tool_definitions() -> list[dict[str, Any]]:
+    """Expose the core student-loan functions as MCP-style tool definitions."""
+    return [
+        {
+            "name": "calculate_student_eligibility",
+            "description": "Estimate a student-loan eligibility profile from course type, income, and country.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "course_type": {"type": "string"},
+                    "income": {"type": "integer"},
+                    "country": {"type": "string"},
+                },
+                "required": ["course_type", "income", "country"],
+            },
+        },
+        {
+            "name": "get_daily_loan_metrics",
+            "description": "Return a simple demo loan metric for the current day.",
+            "inputSchema": {"type": "object", "properties": {}},
+        },
+        {
+            "name": "get_ux_bot_instructions",
+            "description": "Return UX guidance for a given context such as checkout or support.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {"context": {"type": "string"}},
+                "required": ["context"],
+            },
+        },
+    ]
+
+
+def invoke_mcp_tool(name: str, arguments: dict[str, Any] | None = None) -> Any:
+    """Invoke a student-loan tool in a simple MCP-style request/response pattern."""
+    arguments = arguments or {}
+    if name == "calculate_student_eligibility":
+        return calculate_student_eligibility(
+            course_type=str(arguments.get("course_type", "engineering")),
+            income=int(arguments.get("income", 35000)),
+            country=str(arguments.get("country", "US")),
+        )
+    if name == "get_daily_loan_metrics":
+        return get_daily_loan_metrics()
+    if name == "get_ux_bot_instructions":
+        return get_ux_bot_instructions(str(arguments.get("context", "checkout")))
+    raise ValueError(f"Unknown MCP tool: {name}")
+
+
+def get_mcp_resource_definitions() -> list[dict[str, Any]]:
+    """Expose sample MCP resources for student-loan guidance."""
+    return [
+        {
+            "name": "student-loan-faq",
+            "description": "Common student-loan FAQ answers.",
+            "mimeType": "text/markdown",
+        },
+        {
+            "name": "document-checklist",
+            "description": "Checklist of common documents needed for a student-loan application.",
+            "mimeType": "text/markdown",
+        },
+        {
+            "name": "repayment-tips",
+            "description": "Simple repayment and missed-payment guidance.",
+            "mimeType": "text/markdown",
+        },
+    ]
+
+
+def read_mcp_resource(name: str) -> dict[str, Any]:
+    """Return the content of a sample MCP resource."""
+    resources = {
+        "student-loan-faq": "# Student-loan FAQ\n\n- What does this bot do? It explains eligibility, documents, and application steps.\n- How much can I borrow? It uses a simple sample profile to estimate a loan cap.\n",
+        "document-checklist": "# Document checklist\n\n- Government ID\n- Enrollment proof\n- Income statements\n- Residency details\n",
+        "repayment-tips": "# Repayment tips\n\n- Keep payments on time\n- Contact the lender early if you miss a payment\n- Review interest and fees regularly\n",
+    }
+    if name not in resources:
+        raise ValueError(f"Unknown MCP resource: {name}")
+    return {"name": name, "mimeType": "text/markdown", "text": resources[name]}
+
+
+def get_mcp_prompt_definitions() -> list[dict[str, Any]]:
+    """Expose sample MCP prompts for common student-loan scenarios."""
+    return [
+        {
+            "name": "explain_eligibility",
+            "description": "Explain student-loan eligibility in simple language.",
+            "arguments": [{"name": "income", "required": False}],
+        },
+        {
+            "name": "prepare_application",
+            "description": "Create a short checklist for a student-loan application.",
+            "arguments": [{"name": "country", "required": False}],
+        },
+    ]
+
+
+def render_mcp_prompt(name: str, arguments: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Render a simple prompt template for a sample MCP prompt."""
+    arguments = arguments or {}
+    if name == "explain_eligibility":
+        income = arguments.get("income", 35000)
+        prompt = f"Explain student-loan eligibility for someone earning {income} in simple language."
+        return {"name": name, "prompt": prompt}
+    if name == "prepare_application":
+        country = arguments.get("country", "US")
+        prompt = f"Create a short application checklist for a student-loan applicant in {country}."
+        return {"name": name, "prompt": prompt}
+    raise ValueError(f"Unknown MCP prompt: {name}")
+
+
 def run_interactive_ux_bot() -> None:
     """Start a simple command-line interaction loop for the student-loan UX bot."""
     print("Student Loan UX Bot interactive mode")
