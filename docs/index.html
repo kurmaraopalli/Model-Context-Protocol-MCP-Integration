@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UX Bot Demo</title>
+    <link rel="stylesheet" href="static/styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <h1>UX Bot Demo</h1>
+      <p>Type a flow such as <strong>checkout</strong> or <strong>support</strong> to get guidance.</p>
+      <div id="chat" class="chat"></div>
+      <div id="suggestions" class="suggestions"></div>
+      <form id="chat-form" class="chat-form">
+        <input id="message" name="message" placeholder="Type your message" autocomplete="off" />
+        <button type="submit">Send</button>
+      </form>
+    </main>
+    <script src="static/app.js"></script>
+  </body>
+</html>
